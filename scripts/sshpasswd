@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#sshpasswd
+#Gazj 2010 garyjames82atgmaildotcom
+#create passwordless ssh connections
+
+ssh-keygen -t rsa
+echo "Enter ssh password for "$1" below"
+ssh $USER@$1 mkdir -p .ssh
+echo "and again"
+cat ~/.ssh/id_rsa.pub | ssh $USER@$1 'cat >> .ssh/authorized_keys'
+echo "you can now login to "$1" as "$USER" without a password"

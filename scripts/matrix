@@ -1,0 +1,49 @@
+#!/bin/bash
+[ ! "$1" ] && {
+        echo "Usage: matrix <pts-number>"
+        echo "Grabs control of a terminal and sends the Matrix message."
+        echo
+        echo "Choose a pts number:"
+        echo -e "Number\tUser\tName"
+        ps aux | awk '/pts\// && /bash/ {print $7":\t("$1")\t"$11}'
+        exit
+}
+
+{
+        tput civis
+        echo -e "\r"
+        clear
+
+        echo "Wake up, ${USER^}..."
+        sleep 4
+        clear
+
+        s="The Matrix has you..."
+        for ((i=0;i<${#s};i++)); do
+                echo -n "${s:$i:1}"
+                case $i in
+                        [0-2])          sleep 0.5;;
+                        [3-6])          sleep 0.2;;
+                        [7-8])          sleep 0.5;;
+                        [9-11])         sleep 0.2;;
+                        [12-13])        sleep 0.5;;
+                        *)              sleep 0.2;;
+                esac
+        done
+        sleep 3
+        clear
+
+        s="Follow the white rabbit."
+        for ((i=0;i<${#s};i++)); do
+                echo -n "${s:$i:1}"
+                sleep 0.05
+        done
+        sleep 3.5 
+        clear
+
+        echo "Knock. Knock. ${USER^}."
+        sleep 2.5 
+        tput reset
+        clear
+
+} > /dev/pts/$1
