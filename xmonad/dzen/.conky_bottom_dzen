@@ -1,0 +1,12 @@
+# Set to yes if you want Conky to be forked in the background
+background no
+
+ 
+out_to_console yes
+ 
+# Update interval in seconds
+update_interval 1
+ 
+# MPD host/port
+TEXT
+^fg(\#ebac54)^i(/home/serrghi/.xmonad/dzen/arch_10x10.xbm) ^fg(\#FFFFFF)$kernel^fg(\#ebac54) ^i(/home/serrghi/.xmonad/dzen/pacman.xbm) ^fg(\#FFFFFF)up-to-date^fg(\#ebac54) ^i(/home/serrghi/.xmonad/dzen/cpu.xbm) ^fg(\#FFFFFF)${cpu}%^fg(\#ebac54) ${if_existing /proc/net/route wlan0}^i(/home/serrghi/.xmonad/dzen/wifi_01.xbm) ^fg(\#FFFFFF)${wireless_essid wlan0} ^fg(\#00aa4a)^i(/home/serrghi/.xmonad/dzen/net_down_03.xbm)${downspeedf wlan0} ^fg(\#ff3333)^i(/home/serrghi/.xmonad/dzen/net_up_03.xbm)${upspeedf wlan0}
