@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+	<menu id="adm-menu" label="Admin">
+		<menu id="adm-edit" label="Edit">
+			<item label="Rc.xml">
+				<action name="Execute">
+					<execute>
+						urxvt -e  vim ~/.config/openbox/rc.xml
+					</execute>
+				</action>
+			</item>
+			<item label="Menu.xml">
+				<action name="Execute">
+					<execute>
+						urxvt -e vim ~/.config/openbox/menu.xml
+					</execute>
+				</action>
+			</item>
+		</menu>
+		<separator/>
+		<item label="Reconfigure">
+			<action name="Reconfigure"/>
+		</item>
+		<item label="Blueman">
+			<action name="Execute">
+				<execute>
+					blueman-applet
+				</execute>
+			</action>
+		</item>
+		<item label="LXApp">
+			<action name="Execute">
+				<execute>
+					lxappearance
+				</execute>
+			</action>
+		</item>
+		<item label="ObConf">
+			<action name="Execute">
+				<execute>
+					obconf
+				</execute>
+			</action>
+		</item>
+		<item label="ObMenu">
+			<action name="Execute">
+				<execute>
+					obmenu
+				</execute>
+			</action>
+		</item>
+	</menu>
+	<menu id="dev-menu" label="Development">
+		<item label="Eclipse">
+			<action name="Execute">
+				<execute>
+					eclipse
+				</execute>
+			</action>
+		</item>
+		<item label="Netbeans">
+			<action name="Execute">
+				<execute>
+					netbeans
+				</execute>
+			</action>
+		</item>
+	</menu>
+	<menu id="apps-menu" label="Internet">
+		<item label="Chrome">
+			<action name="Execute">
+				<execute>
+					google-chrome
+				</execute>
+			</action>
+		</item>
+		<item label="Deluge">
+			<action name="Execute">
+				<execute>
+					deluge
+				</execute>
+			</action>
+		</item>
+		<item label="eMeSeNe">
+			<action name="Execute">
+				<execute>
+					emesene
+				</execute>
+			</action>
+		</item>
+		<item label="Firefox">
+			<action name="Execute">
+				<execute>
+					firefox
+				</execute>
+			</action>
+		</item>
+		<menu id="apps-menu-123735" label="rDesktop">
+			<item label="unyttigFil (Local)">
+				<action name="Execute">
+					<execute>
+						rdesktop -u serrghi -p zap779ue -g 1280x746 192.168.1.104
+					</execute>
+				</action>
+			</item>
+		</menu>
+		<item label="Swiftweasel">
+			<action name="Execute">
+				<execute>
+					swiftweasel
+				</execute>
+			</action>
+		</item>
+		<item label="Thunderbird">
+			<action name="Execute">
+				<execute>
+					thunderbird
+				</execute>
+			</action>
+		</item>
+	</menu>
+	<menu id="ent-menu" label="Entertainment">
+		<item label="Mkv2Vob">
+			<action name="Execute">
+				<execute>
+					wine ~/.wine/drive_c/Programfiler/mkv2vob/mkv2vob.exe
+				</execute>
+			</action>
+		</item>
+		<item label="Mplayer">
+			<action name="Execute">
+				<execute>
+					gnome-mplayer
+				</execute>
+			</action>
+		</item>
+		<item label="Spotify">
+			<action name="Execute">
+				<execute>
+					wine ~/.wine/drive_c/Programfiler/Spotify/spotify.exe
+				</execute>
+			</action>
+		</item>
+	</menu>
+	<menu execute="~/.config/openbox/scripts/mupen64menu.py" id="mupen64menu" label="N64"/>
+	<menu id="office" label="Office">
+		<item label="OpenOffice.Org">
+			<action name="Execute">
+				<execute>
+					soffice
+				</execute>
+			</action>
+		</item>
+		<item label="GVIM">
+			<action name="Execute">
+				<execute>
+					/usr/bin/gvim
+				</execute>
+			</action>
+		</item>
+	</menu>
+	<menu id="iwant" label="I want to..">
+		<item label="Reboot">
+			<action name="Execute">
+				<prompt>
+					Are you sure you want to reboot?
+				</prompt>
+				<execute>
+					sudo /sbin/shutdown -r now
+				</execute>
+			</action>
+		</item>
+		<item label="Shutdown">
+			<action name="Execute">
+				<prompt>
+					Are you sure you want to shutdown?
+				</prompt>
+				<execute>
+					sudo /sbin/shutdown -h now
+				</execute>
+			</action>
+		</item>
+	</menu>
+	<menu id="root-menu" label="Openbox 3">
+		<separator label="Openbox"/>
+		<menu id="adm-menu"/>
+		<menu id="dev-menu"/>
+		<menu id="ent-menu"/>
+		<menu id="gfx"/>
+		<menu id="apps-menu"/>
+		<menu id="mupen64menu"/>
+		<menu id="office"/>
+		<separator/>
+		<item label="urxvt">
+			<action name="Execute">
+				<execute>
+					urxvt
+				</execute>
+			</action>
+		</item>
+		<item label="PCMan FM">
+			<action name="Execute">
+				<execute>
+					pcmanfm
+				</execute>
+			</action>
+		</item>
+		<separator/>
+		<menu id="iwant"/>
+	</menu>
+</openbox_menu>

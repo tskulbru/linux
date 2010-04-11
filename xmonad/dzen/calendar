@@ -1,0 +1,26 @@
+#!/bin/bash
+# Calendar
+
+TODAY=$(expr `date +'%d'` + 0)
+MONTH=`date +'%m'`
+YEAR=`date +'%Y'`
+ 
+ (
+date "+^i(/home/serrghi/.xmonad/dzen/up.xbm)^p(4)%d %b, %a  ^fg(#ffffff)%T^fg() "
+
+ echo "^fg(#ff8800)xmonad^fg()"
+ xmonad --version | awk '{print "^fg(#ff8800)"$2"^fg()"}'
+ 
+ echo
+ cal | sed -r -e "1,2 s/.*/^fg(#ffffff)&^fg()/" \
+ -e "s/(^| )($TODAY| $TODAY)($| )/\1^bg(#ff8800)^fg(#000000)\2^fg()^bg()\3/"
+
+ [ $MONTH -eq 12 ] && YEAR=`expr $YEAR + 1`
+ cal `expr \( $MONTH + 1 \) % 12` $YEAR | sed -e "1,2 s/.*/^fg(#ffffff)&^fg()/"
+
+ ) | \
+ dzen2 \
+ -p 10 \
+ -fn "-*-bitstream vera sans-medium-r-normal-*-11-*-*-*-*-*-*-*'" \
+ -x 1130 -y 780 -w 150 -l 20 -ta r -sa c \
+ -e "onstart=uncollapse;button1=exit"

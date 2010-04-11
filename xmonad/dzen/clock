@@ -1,0 +1,11 @@
+#!/bin/bash
+# Clock display on lower right
+
+while true; do
+    date "+^i(/home/serrghi/.xmonad/dzen/up.xbm)^p(4)%d %b, %a  ^fg(#ffffff)%T^fg() "
+    sleep 1;:
+done | \
+dzen2 \
+-fn "-*-bitstream vera sans-medium-r-normal-*-11-*-*-*-*-*-*-*'" \
+-x 1130 -y -1 -w 150 -h 24 -ta r \
+-e "button1=exec:/home/serrghi/.xmonad/dzen/calendar"
