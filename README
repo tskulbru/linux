@@ -1,0 +1,11 @@
+-- openbox --
+Contains openbox configs and openbox related stuff
+
+-- screenshots --
+Contains various screenshots
+
+-- scripts --
+Contains various nifty scripts which might come handy one day
+
+-- xmonad --
+Contains xmonad configs and xmonad related stuff (dzen configs etc)
