@@ -1,89 +1,79 @@
--- Imports {{{
 import XMonad
--- Prompt
-import XMonad.Prompt
-import XMonad.Prompt.RunOrRaise (runOrRaisePrompt)
-import XMonad.Prompt.AppendFile (appendFilePrompt)
--- Hooks
-import XMonad.Operations
-
-import System.IO
-import System.Exit
-
-import XMonad.Util.Run
-
-
+import XMonad.Actions.CopyWindow
+import XMonad.Actions.DynamicWorkspaces as DW
 import XMonad.Actions.CycleWS
-
+import XMonad.Actions.GridSelect
+import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.SetWMName
-import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.FadeInactive
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.SetWMName
-
-import XMonad.Layout.NoBorders (smartBorders, noBorders)
-import XMonad.Layout.PerWorkspace (onWorkspace)
-import XMonad.Layout.Reflect (reflectHoriz)
-import XMonad.Layout.IM
-import XMonad.Layout.SimpleFloat
-import XMonad.Layout.Spacing
-import XMonad.Layout.ResizableTile
 import XMonad.Layout.NoBorders
+import XMonad.Layout.ResizableTile
 import XMonad.Layout.Gaps
+import XMonad.Layout.Named
+import XMonad.Layout.IM
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Grid
+import XMonad.Layout.Spacing
+import XMonad.Layout.LayoutHints
+import XMonad.Layout.NoBorders
+import XMonad.Layout.ToggleLayouts
+import XMonad.Layout.Reflect
+import XMonad.Layout.WorkspaceDir as WD
+import XMonad.Util.EZConfig
+import XMonad.Util.Run
 
-import qualified XMonad.StackSet as W
+import qualified Data.List as L
 import qualified Data.Map as M
+import qualified XMonad.StackSet as W
 
---}}}
+myHome = "/home/serrghi"
+myFont = "xft:ProggyTiny:pixelsize=10"
+myBgColor = "#1b1d1e"
+myFgColor = "#bbbbbb"
+myBorderColor = "#292c2d"
+myFocusedColor = "#57666a"
+--myCurrentColor = "#cd5c5c"
+myCurrentColor = "#ebac54"
+myEmptyColor = "#4c4c4c"
+myHiddenColor = "#dddddd"
+--myLayoutColor = "#666666"
+myLayoutColor = "#ebac54"
+myUrgentColor = "#2b9ac8"
+myIcon name = myHome ++ "/.xmonad/dzen/" ++ name ++ ".xbm"
 
--- Config {{{
--- Define Terminal
-myTerminal      = "urxvt"
--- Define modMask
-modMask' :: KeyMask
-modMask' = mod4Mask
--- Define workspaces
-myWorkspaces    = ["1:main","2:irc","3:web","4:dev","5:foo()","6:wine"]
--- Dzen config
-myStatusBar = "dzen2 -x '0' -y '0' -h '24' -w '1280' -ta 'l' -fg '#FFFFFF' -bg '#161616' -fn '-*-bitstream vera sans-medium-r-normal-*-11-*-*-*-*-*-*-*'"
-myBtmStatusBar = "conky -c /home/serrghi/.conky_bottom_dzen | dzen2 -x '0' -w '1280' -h '24' -ta 'c' -bg '#161616' -fg '#FFFFFF' -fn '-*-bitstream vera sans-medium-r-normal-*-11-*-*-*-*-*-*-*' -y -1"
-myBitmapsDir = "/home/serrghi/.xmonad/dzen"
---}}}
--- Main {{{
-main = do
-    dzenTopBar <- spawnPipe myStatusBar
-    dzenBtmBar <- spawnPipe myBtmStatusBar
-    spawn "sh /home/serrghi/.xmonad/autostart.sh"
-    xmonad $ defaultConfig
-      { terminal            = myTerminal
-      , workspaces          = myWorkspaces
-      , keys                = keys'
-      , modMask             = modMask'
-      , startupHook         = ewmhDesktopsStartup >> setWMName "LG3D"
-      , layoutHook          = layoutHook'
-      , manageHook          = manageHook'
-      , logHook             = myLogHook dzenTopBar >> fadeInactiveLogHook 0xdddddddd  >> setWMName "LG3D"
-      , normalBorderColor   = colorNormalBorder
-      , focusedBorderColor  = colorFocusedBorder
-}
---}}}
+myWorkspaces = ["1:main", "2:irc", "3:web", "4:dev", "5:misc", "6:ext", "7:gfx", "8:wine"]
+myTerminal = "urxvt"
+myBorderWidth = 1
+myModMask = mod4Mask
+
+myStartupHook = setWMName "LG3D"
+
+myLayoutHook = avoidStruts $
+             onWorkspace "7:gfx" (Full ||| gimp) $
+             onWorkspace "2:irc" (Full ||| tall) $
+             onWorkspace "3:web" (Full) $
+             tall ||| grid ||| Full
+             where myNamed n l = named n $ layoutHints . gaps [(U, 3), (D, 3), (R, 3), (L, 3)] . spacing 3 $ l
+                   grid = myNamed "grid" Grid
+                   tall = myNamed "tall" (Tall 1 (3/100) (1/2))
+                   gimp = withIM (0.11) (Role "gimp-toolbox") $
+                          reflectHoriz $
+                          withIM (0.15) (Role "gimp-dock") Full
 
 
--- Hooks {{{
--- ManageHook {{{
-manageHook' :: ManageHook
-manageHook' = (composeAll . concat $
+myManageHook = (composeAll . concat $
     [ [resource     =? r            --> doIgnore            |   r   <- myIgnores] -- ignore desktop
-    , [className    =? c            --> doShift  "3:web"    |   c   <- myWebs   ] -- move webs to webs
-    , [className    =? c            --> doShift  "4:dev"    |   c   <- myDevs   ] -- move devs to devs
-    , [className    =? c            --> doF(W.shift "6:wine")   |   c   <- myWines  ] -- move wines to wine
-    , [className    =? c            --> doCenterFloat       |   c   <- myFloats ] -- float my floats
-    , [name         =? n            --> doCenterFloat       |   n   <- myNames  ] -- float my names
-    , [isFullscreen                 --> myDoFullFloat                           ]
-    ]) 
+    , [className    =? c            --> doShift  "3:web"    |   c   <- myWebs   ] -- move webs to web                                                                                                               
+    , [className    =? c            --> doShift  "4:dev"    |   c   <- myDevs   ] -- move devs to dev
+    , [className    =? c            --> doShift  "6:ext"    |   c   <- myExt    ] -- move external (rdesktop etc) to ext 
+    , [className    =? c            --> doShift  "8:wine"   |   c   <- myWines  ] -- move wines to wine
+    , [className    =? c            --> doShift  "7:gfx"    |   c   <- myGfxs   ] -- move graphicapps to gfx
+    , [className    =? c            --> doFloat             |   c   <- myFloats ] -- float my floats
+    , [name         =? n            --> doFloat             |   n   <- myNames  ] -- float my names
+    , [isFullscreen                 --> doF W.focusDown <+> doFullFloat         ] -- YouTube fullscreen fix
+    ])  
 
     where
 
@@ -92,135 +82,85 @@ manageHook' = (composeAll . concat $
 
         -- classnames
         myFloats  = ["MPlayer","Zenity","VirtualBox","Xmessage","Save As...","XFontSel","Downloads","Nm-connection-editor"]
-        myWebs    = ["Navigator","Shiretoko","Firefox","Uzbl","uzbl","Uzbl-core","uzbl-core","Google-chrome","Chromium","Shredder","Mail"]
+        myWebs    = ["Navigator","Shiretoko","Firefox","Uzbl","uzbl","Uzbl-core","uzbl-core","Google-chrome","Chromium","Shredder","Mail","Chrome","Thunderbird"]
         myDevs    = ["Eclipse","eclipse","Netbeans","Gvim"]
+        myExt     = ["Remmina"]
         myWines   = ["Wine"]
+        myGfxs    = ["Inkscape", "Gimp"]
 
         -- resources
         myIgnores = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
+       -- names
+        myNames   = ["bashrun","Google Chrome Options","Chromium Options","gmrun"]       
 
-        -- names
-        myNames   = ["bashrun","Google Chrome Options","Chromium Options"]
+myKeys conf = mkKeymap conf $
+               -- kills
+               [ ("M1-<F4>", kill)
+               , ("M-S-q", spawn "exec killall dzen2" >> restart "xmonad" True)
+               -- programs
+               , ("M-p", spawn "dmenu_run -l 8 -fn \"xft:ProggyTiny-7\" -nb \"#1B1D1E\" -nf \"#a0a0a0\" -sb \"#333\" -sf \"#fff\" -p Run -b")
+               , ("M-r", spawn $ XMonad.terminal conf)
+               --, ("M1-<F2>", spawn "gmrun")
+               , ("M-f", spawn "google-chrome")
+               , ("M-t", spawn "thunderbird")
+               , ("M-e", spawn "pcmanfm")
+               -- layouts
+               , ("M-m", windows W.shiftMaster)
+               , ("M-S-t", withFocused $ windows . W.sink)
+               , ("M-,", sendMessage Shrink)
+               , ("M-.", sendMessage Expand)
+               , ("M-l", goToSelected defaultGSConfig)
+               , ("M-<Space>", sendMessage NextLayout)
+               , ("M1-<Tab>", windows W.focusDown)
+               -- Special keys
+               , ("<XF86AudioMute>", spawn "vol mute")
+               , ("<XF86AudioLowerVolume>", spawn "vol down")
+               , ("<XF86AudioRaiseVolume>", spawn "vol up")
+               , ("<Print>", spawn "screenshot scr")
+               ]
+               ++
+               [ (m ++ k, f i)
+                  | (i, k) <- zip ((\ws -> last ws : ws) . workspaces $ conf)
+                                   ("^" : map show ([1..9] ++ [0]))
+                  , (m, f) <- [ ("M-"    , windows . W.greedyView)
+                              , ("M-S-"  , windows . W.shift)
+                              ]
+               ]
 
--- a trick for fullscreen but stil allow focusing of other WSs
-myDoFullFloat :: ManageHook
-myDoFullFloat = doF W.focusDown <+> doFullFloat
--- }}}
-layoutHook' = customLayout
 
--- Bar
-myLogHook :: Handle -> X ()
+myStatusBar = "dzen2 -x 0 -y 0 -h 16 -w 640 -ta l -fn " ++ myFont ++ " -bg \"" ++ myBgColor ++ "\" -fg \"" ++ myFgColor ++ "\""
+myResourceBar = "MY_HOME=\"" ++ myHome ++ "\" conky -c ~/.xmonad/conky.conf | dzen2 -x 640 -y 0 -h 16 -w 640 -ta r -fn " ++ myFont ++ " -bg \"" ++ myBgColor ++ "\" -fg \"" ++ myFgColor ++ "\""
 myLogHook h = dynamicLogWithPP $ defaultPP
-    {
-        ppCurrent           =   dzenColor "#ebac54" "#161616" . pad
-      , ppVisible           =   dzenColor "white" "#161616" . pad
-      , ppHidden            =   dzenColor "white" "#161616" . pad
-      , ppHiddenNoWindows   =   dzenColor "#444444" "#161616" . pad
-      , ppUrgent            =   dzenColor "red" "#161616" . pad
-      , ppWsSep             =   " "
-      , ppSep               =   "  |  "
-      , ppLayout            =   dzenColor "#ebac54" "#161616" .
-                                (\x -> case x of
-                                    "ResizableTall"             ->      "^i(" ++ myBitmapsDir ++ "/tall.xbm)"
-                                    "Mirror ResizableTall"      ->      "^i(" ++ myBitmapsDir ++ "/mtall.xbm)"
-                                    "Full"                      ->      "^i(" ++ myBitmapsDir ++ "/full.xbm)"
-                                    "Simple Float"              ->      "~"
-                                    _                           ->      x
-                                )
-      , ppTitle             =   (" " ++) . dzenColor "white" "#161616" . dzenEscape
-      , ppOutput            =   hPutStrLn h
-    }
--- Layout
-customLayout = gaps [(D,16)] $ avoidStruts $ smartBorders tiled ||| smartBorders (Mirror tiled)  ||| noBorders Full ||| smartBorders simpleFloat
-  where
-    --tiled = ResizableTall 1 (2/100) (1/2) []
-    tiled   = ResizableTall nmaster delta ratio []
-    nmaster = 1   
-    delta   = 2/100
-    ratio   = 1/2
---}}}
--- Theme {{{
--- Color names are easier to remember:
-colorOrange          = "#ff7701"
-colorDarkGray        = "#171717"
-colorPink            = "#e3008d"
-colorGreen           = "#00aa4a"
-colorBlue            = "#008dd5"
-colorYellow          = "#fee100"
-colorWhite           = "#cfbfad"
- 
-colorNormalBorder    = "#1c2636"
-colorFocusedBorder   = "#ebac54"
-barFont  = "terminus"
-barXFont = "inconsolata:size=14"
-xftFont = "xft: inconsolata-14"
---}}}
+                                  { ppOutput = hPutStrLn h
+                                  , ppCurrent = corner . fg myCurrentColor
+                                  , ppHidden = corner . fg myHiddenColor
+                                  , ppHiddenNoWindows = corner . fg myEmptyColor
+                                  , ppUrgent = corner . fg myUrgentColor . dzenStrip
+                                  , ppLayout = fg myLayoutColor . layout
+                                  , ppWsSep = "  "
+                                  , ppSep = "     "
+                                  , ppTitle = fg myFgColor . dzenEscape . shorten 100 . trim
+                                  }
+            where fg c = dzenColor c ""
+                  icon n = "^i(" ++ (myIcon n) ++ ")"
+                  corner = (++) (icon "corner")
+                  layout n = icon ("layout-" ++ n)
 
--- Prompt Config {{{
-mXPConfig :: XPConfig
-mXPConfig =
-    defaultXPConfig { font                  = barFont
-                    , bgColor               = colorDarkGray
-                    , fgColor               = colorGreen
-                    , bgHLight              = colorGreen
-                    , fgHLight              = colorDarkGray
-                    , promptBorderWidth     = 0
-                    , height                = 14
-                    , historyFilter         = deleteConsecutive
-                    }
- 
--- Run or Raise Menu
-largeXPConfig :: XPConfig
-largeXPConfig = mXPConfig
-                { font = xftFont
-                , height = 20
-                }
--- }}}
--- Key mapping {{{
-keys' :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-keys' conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
-    [ ((modMask,                    xK_p        ), runOrRaisePrompt largeXPConfig)
-    , ((mod1Mask,                   xK_F2       ), spawn "gmrun")
-    , ((0,                          xK_Print    ), spawn "screenshot scr")
-
-    -- Programs
-    , ((modMask,                    xK_r        ), spawn $ XMonad.terminal conf) -- spawn terminal
-    , ((modMask,                    xK_f        ), spawn "google-chrome")
-    , ((modMask,                    xK_t        ), spawn "thunderbird")
-    , ((modMask,                    xK_e        ), spawn "pcmanfm")
-
-    -- Media Keys
-    , ((0,                          0x1008ff12  ), spawn "vol mute") -- XF86AudioMute
-    , ((0,                          0x1008ff11  ), spawn "vol down") -- XF86AudioLowerVolume
-    , ((0,                          0x1008ff13  ), spawn "vol up") -- XF86AudioRaiseVolume
-
-    -- layouts
-    , ((modMask,                    xK_space    ), sendMessage NextLayout)
-    , ((modMask .|. shiftMask,      xK_space    ), setLayout $ XMonad.layoutHook conf) -- reset layout on current desktop to default
-    , ((modMask,                    xK_b        ), sendMessage ToggleStruts)
-    , ((mod1Mask,                   xK_Tab      ), windows W.focusDown) -- move focus to next window
-    , ((mod1Mask,                   xK_F4       ), kill) -- kill selected window
-    , ((modMask .|. shiftMask,      xK_j        ), windows W.swapDown) -- swap the focused window with the next window
-    , ((modMask .|. shiftMask,      xK_k        ), windows W.swapUp)  -- swap the focused window with the previous window
-    , ((modMask .|. shiftMask,      xK_t        ), withFocused $ windows . W.sink) -- Push window back into tiling
-
-    -- workspaces
-    , ((mod1Mask .|. controlMask,   xK_Right    ), nextWS)
-    , ((mod1Mask .|. shiftMask,     xK_Right    ), shiftToNext)
-    , ((mod1Mask .|. controlMask,   xK_Left     ), prevWS)
-    , ((mod1Mask .|. shiftMask,     xK_Left     ), shiftToPrev)
-    
-    -- quit, or restart
-    , ((modMask .|. shiftMask,      xK_q        ), io (exitWith ExitSuccess))
-    , ((modMask              ,      xK_q        ), restart "xmonad" True)
-    , ((modMask .|. shiftMask,      xK_r        ), spawn "killall conky dzen2 && xmonad --recompile && xmonad --restart")
-    ]
-    ++
-    -- mod-[1..9] %! Switch to workspace N
-    -- mod-shift-[1..9] %! Move client to workspace N
-    [((m .|. modMask, k), windows $ f i)
-        | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
-
---}}}
--- vim:foldmethod=marker sw=4 sts=4 ts=4 tw=0 et ai nowrap 
+main = do
+        status <- spawnPipe myStatusBar
+        resource <- spawnPipe myResourceBar
+        spawn "sh /home/serrghi/.xmonad/autostart.sh"
+        xmonad $ withUrgencyHook NoUrgencyHook
+               $ defaultConfig
+                  { workspaces = myWorkspaces
+                  , terminal = myTerminal
+                  , borderWidth = myBorderWidth
+                  , modMask = myModMask
+                  , normalBorderColor = myBorderColor
+                  , focusedBorderColor = myFocusedColor
+                  , keys = myKeys
+                  , layoutHook = myLayoutHook
+                  , logHook = myLogHook status
+                  , startupHook = myStartupHook
+                  , manageHook = myManageHook
+                  }
