@@ -4,6 +4,17 @@
 # Author:   Torstein "serrghi" S. Skulbru <post@unyttig.info>      #
 #------------------------------------------------------------------#
 
+if [ -n "$DISPLAY" ]; then
+     BROWSER=chromium
+fi
+
+source /etc/profile
+
+#-----------------------------
+# Runtime stuff
+#-----------------------------
+eval $(keychain --eval --agents ssh -Q --quiet id_rsa)
+
 #------------------------------
 # History stuff
 #------------------------------
@@ -16,7 +27,7 @@ SAVEHIST=1000
 #------------------------------
 export EDITOR="vim"
 export PAGER="vimpager"
-export PATH="${PATH}:${HOME}/bin"
+export PATH=$HOME/local/bin:$PATH
 
 #-----------------------------
 # Dircolors
@@ -55,18 +66,21 @@ bindkey "\eOF" end-of-line
 #------------------------------
 alias ls="ls --color -F"
 alias ll="ls --color -lh"
-alias pac="pacup && yaourt -S"
+alias pac="yaourt -S"
 alias pacup="yaourt -Syu --aur"
 alias pacs="yaourt -Ss"
 alias xp='xprop | grep "WM_WINDOW_ROLE\|WM_CLASS" && echo "WM_CLASS(STRING) = \"NAME\", \"CLASS\""'
-
-
+## SSH ALIAS
 #------------------------------
 # Comp stuff
 #------------------------------
 zmodload zsh/complist 
-autoload -Uz compinit
-compinit
+zmodload -a zsh/stat stat
+zmodload -a zsh/zpty zpty
+zmodload -a zsh/zprof zprof
+zmodload -a zsh/mapfile mapfile
+
+autoload -Uz compinit && compinit
 zstyle :compinstall filename '${HOME}/.zshrc'
 
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
@@ -162,4 +176,3 @@ setprompt () {
     PS2=$'%_>'
 }
 setprompt
-
